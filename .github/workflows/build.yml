@@ -23,6 +23,9 @@ jobs:
       with:
         packages: 'platform-tools'
 
+    - name: Create local.properties
+      run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
     - name: Generate Gradle Wrapper
       run: gradle wrapper --gradle-version 8.7
 
@@ -30,7 +33,7 @@ jobs:
       run: chmod +x ./gradlew
 
     - name: Build with Gradle
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+      run: ./gradlew clean assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
