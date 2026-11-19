@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Angel Station</title>
+    <style>
+        body { margin: 0; background: #0b0b0b; color: white; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        .topbar { height: 40px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; font-size: 14px; color: #aaa; }
+        .menu { flex: 1; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .tile { width: 180px; height: 220px; background: #1a1a1a; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid transparent; opacity: 0.6; transition: 0.2s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .tile.active { opacity: 1; border-color: #FF6B35; transform: scale(1.1); box-shadow: 0 0 30px rgba(255,107,53,0.4); }
+        .icon { font-size: 60px; margin-bottom: 15px; }
+        .label { font-weight: bold; font-size: 18px; letter-spacing: 1px; }
+        .hints { height: 50px; display: flex; justify-content: center; align-items: center; gap: 30px; color: #666; font-size: 14px; background: #000; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div id="clock">12:00</div>
+        <div>Wi-Fi | 🔋 100%</div>
+    </div>
+    <div class="menu">
+        <div class="tile active" data-app="games"><div class="icon">🎮</div><div class="label">Игры</div></div>
+        <div class="tile" data-app="browser"><div class="icon">🌐</div><div class="label">Браузер</div></div>
+        <div class="tile" data-app="settings"><div class="icon">⚙️</div><div class="label">Настройки</div></div>
+    </div>
+    <div class="hints">
+        <div>← → Выбор</div>
+        <div>A Вход</div>
+        <div>B Назад</div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        const tiles = document.querySelectorAll('.tile');
+        
+        function updateUI() {
+            tiles.forEach((t, i) => t.classList.toggle('active', i === currentIndex));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                currentIndex = Math.min(tiles.length - 1, currentIndex + 1);
+                updateUI();
+            } else if (e.key === 'ArrowLeft') {
+                currentIndex = Math.max(0, currentIndex - 1);
+                updateUI();
+            } else if (e.key === 'Enter') {
+                if (window.AndroidBridge) {
+                    window.AndroidBridge.launchApp(tiles[currentIndex].dataset.app);
+                }
+            }
+        });
+
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('clock').textContent = 
+                String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+        }, 1000);
+    </script>
+</body>
+</html>
