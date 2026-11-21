@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1000 в 1 — Игра с 1000 мини-игр</title>
+<style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; background: #0d0d0d; color: #0f0;
+           text-align: center; margin: 0; padding: 18px 14px 60px; }
+    .wrap { max-width: 880px; margin: 0 auto; }
+    h1 { color: #0ff; margin: 6px 0; letter-spacing: 1px; }
+    .sub { color: #7f7; margin: 0 0 12px; font-size: 14px; }
+    button { padding: 11px 18px; margin: 4px; font-size: 16px; background: #1c1c1c; color: #0f0;
+             border: 2px solid #0f0; border-radius: 8px; cursor: pointer; font-family: inherit; }
+    button:hover:not(:disabled) { background: #0f0; color: #111; }
+    button:disabled { opacity: .45; cursor: default; }
+    input { padding: 10px; font-size: 16px; margin: 4px; background: #1c1c1c; color: #0f0;
+            border: 2px solid #0f0; border-radius: 8px; font-family: inherit; }
+    .topbar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 14px 0 6px; }
+    .topbar input { width: 170px; }
+    .stats { color: #8f8; font-size: 14px; margin: 8px 0 14px; }
+    #game { margin: 0 auto; padding: 18px; background: #161616; border: 3px solid #0ff;
+            border-radius: 14px; min-height: 320px; box-shadow: 0 0 24px #0ff2; }
+    .gamehead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+                justify-content: space-between; text-align: left;
+                border-bottom: 1px solid #0ff3; padding-bottom: 12px; margin-bottom: 16px; }
+    .gamehead h2 { margin: 0; font-size: 18px; color: #0ff; }
+    .badges { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge { font-size: 12px; padding: 3px 9px; border: 1px solid #0f0; border-radius: 99px; color: #0f0; }
+    .badge.won { background: #0f0; color: #111; font-weight: bold; }
+    .headbtns { display: flex; gap: 6px; }
+    .iconbtn { padding: 7px 11px; font-size: 16px; }
+    .mg { text-align: center; }
+    .mg p { margin: 9px 0; }
+    .mg .row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
+    .mg .inp { width: 150px; margin: 0; }
+    .mg .big { font-size: 30px; margin: 14px 0; color: #0ff; letter-spacing: 1px; }
+    .mg .msg { min-height: 26px; font-size: 17px; }
+    .mgrid { display: grid; gap: 8px; margin: 14px auto; }
+    .mcard { font-size: 24px; padding: 12px 0; margin: 0; }
+    .mcard.open { background: #0ff; color: #111; }
+    .mcard.done { opacity: .4; }
+    .simon { display: grid; grid-template-columns: repeat(2, 92px); gap: 10px;
+             justify-content: center; margin: 16px auto; }
+    .pad { height: 92px; margin: 0; opacity: .45; transition: .12s; border-width: 3px; }
+    .bar-wrap { position: relative; height: 34px; background: #222; border: 2px solid #0f0;
+                border-radius: 8px; margin: 22px auto; max-width: 520px; overflow: hidden; }
+    .bar-zone { position: absolute; top: 0; bottom: 0; background: #0f03;
+                border-left: 2px solid #0f0; border-right: 2px solid #0f0; }
+    .bar { position: absolute; top: 0; bottom: 0; width: 7px; background: #0ff; }
+    .arena { position: relative; height: 260px; border: 2px dashed #0f04; border-radius: 10px;
+             margin: 14px auto; max-width: 520px; overflow: hidden; }
+    .target { position: absolute; width: 50px; height: 50px; border-radius: 50%;
+              background: #0f0; color: #111; font-size: 22px; border: none; cursor: pointer;
+              display: flex; align-items: center; justify-content: center; }
+    .ttt { display: grid; grid-template-columns: repeat(3, 84px); gap: 8px;
+           justify-content: center; margin: 16px auto; }
+    .ttt button { height: 84px; font-size: 38px; margin: 0; padding: 0; }
+    .win { color: #0f0; }
+    .lose { color: #f66; }
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 30px);
+             background: #0f0; color: #111; padding: 12px 22px; border-radius: 10px;
+             font-weight: bold; opacity: 0; transition: .25s; pointer-events: none; z-index: 60; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    /* модальное окно списка */
+    .modal { position: fixed; inset: 0; background: #000d; display: none; z-index: 50; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-box { width: min(940px, 96vw); height: min(84vh, 820px); background: #141414;
+                 border: 2px solid #0ff; border-radius: 14px; display: flex;
+                 flex-direction: column; padding: 12px; }
+    .modal-head { display: flex; gap: 8px; margin-bottom: 10px; }
+    .modal-head input { flex: 1; margin: 0; }
+    .modal-grid { flex: 1; overflow: auto; display: grid;
+                  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+                  gap: 6px; padding-right: 4px; }
+    .modal-grid button { padding: 10px 4px; font-size: 14px; margin: 0; }
+    .modal-grid button.won { background: #064; }
+    .modal-grid button.fav::after { content: '★'; color: #ff0; margin-left: 3px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <h1>🎮 1000 В 1</h1>
+    <p class="sub">Каждый номер 1–1000 — своя мини-игра (22 механики × 1000 уникальных вариантов)</p>
+
+    <div class="topbar">
+        <input type="number" id="num" min="1" max="1000" placeholder="Номер 1–1000">
+        <button id="playBtn">▶ Играть</button>
+        <button id="randBtn">🎲 Случайная</button>
+        <button id="randUnwonBtn">🎯 Непройденная</button>
+        <button id="listBtn">📋 Все 1000</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <section id="game">
+        <div class="gamehead" id="gameHead"></div>
+        <div id="gameContent"></div>
+    </section>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <input id="search" placeholder="Поиск по номеру или типу игры…">
+            <button id="closeModal">✕</button>
+        </div>
+        <div class="modal-grid" id="modalGrid"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+const el = (tag, cls, txt) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt != null) e.textContent = txt;
+    return e;
+};
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+/* Детерминированный ГПСЧ */
+function hash32(n) {
+    let x = n | 0;
+    x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+    x = Math.imul(x ^ (x >>> 16), 0x45d9f3b);
+    x = x ^ (x >>> 16);
+    return x >>> 0;
+}
+function mulberry32(a) {
+    return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+const pickBy = (rng, arr) => arr[Math.floor(rng() * arr.length)];
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+
+/* ============================================================
+   ХРАНИЛИЩЕ
+   ============================================================ */
+const store = {
+    won: new Set(),
+    fav: new Set(),
+    load() {
+        try {
+            this.won = new Set(JSON.parse(localStorage.getItem('mg1000_won') || '[]'));
+            this.fav = new Set(JSON.parse(localStorage.getItem('mg1000_fav') || '[]'));
+        } catch (e) { /* приватный режим */ }
+    },
+    save() {
+        try {
+            localStorage.setItem('mg1000_won', JSON.stringify([...this.won]));
+            localStorage.setItem('mg1000_fav', JSON.stringify([...this.fav]));
+        } catch (e) {}
+    }
+};
+
+/* ============================================================
+   ГЕНЕРАТОР НАЗВАНИЙ
+   ============================================================ */
+const ADJ = ['Неоновый','Тёмный','Космический','Забытый','Хрустальный','Огненный',
+             'Ледяной','Цифровой','Древний','Бархатный','Звёздный','Тайный',
+             'Быстрый','Лунный','Стальной','Изумрудный','Багровый','Туманный',
+             'Пиксельный','Грозовой'];
+const NOUN = ['рассвет','лабиринт','кристалл','предел','шторм','прилив','секрет',
+              'механизм','портал','импульс','горизонт','сигнал','артефакт',
+              'рубеж','вихрь','маяк','код','разлом','вектор','контур'];
+function titleFor(base, rng) {
+    return base + ': ' + pickBy(rng, ADJ) + ' ' + pickBy(rng, NOUN);
+}
+
+/* ============================================================
+   МЕХАНИКИ
+   ============================================================ */
+const MECHANICS = [];
+const mech = (id, name, make) => MECHANICS.push({ id, name, make });
+
+/* --- 1. Угадай число --- */
+mech('guess', 'Угадай число', rng => {
+    const max = pickBy(rng, [50, 100, 200, 500, 1000]);
+    const secret = 1 + Math.floor(rng() * max);
+    const limit = max >= 500 ? Math.ceil(Math.log2(max)) + 3 : 0;
+    return {
+        html: `<p>Я загадал число от <b>1</b> до <b>${max}</b>${limit ? ', попыток: <b>' + limit + '</b>' : ''}.</p>
+               <div class="row"><input type="number" class="inp" data-k="in" placeholder="Число">
+               <button data-k="go">Проверить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="tries"></p>`,
+        init(root, api) {
+            const inp = $('[data-k=in]', root), msg = $('[data-k=msg]', root), tr = $('[data-k=tries]', root);
+            let tries = 0, over = false;
+            const go = () => {
+                if (over) return;
+                const v = parseInt(inp.value, 10);
+                if (isNaN(v) || v < 1 || v > max) { msg.textContent = 'Введи от 1 до ' + max; return; }
+                tries++;
+                if (v === secret) {
+                    over = true;
+                    msg.innerHTML = '<b class="win">Победа! Число ' + secret + '. Попыток: ' + tries + '</b>';
+                    api.win();
+                } else if (limit && tries >= limit) {
+                    over = true;
+                    msg.innerHTML = '<b class="lose">Попытки кончились. Было ' + secret + '.</b>';
+                } else {
+                    msg.textContent = v < secret ? 'Больше ↑' : 'Меньше ↓';
+                }
+                tr.textContent = 'Попыток: ' + tries + (limit ? ' / ' + limit : '');
+                inp.value = ''; inp.focus();
+            };
+            $('[data-k=go]', root).onclick = go;
+            inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+            inp.focus();
+        }
+    };
+});
+
+/* --- 2. Больше или меньше --- */
+mech('hl', 'Больше или меньше', rng => {
+    const rounds = pickBy(rng, [4, 5, 6]);
+    const need = rounds - 1;
+    return {
+        html: `<p>Угадай, будет ли следующее число больше или меньше текущего. Раундов: <b>${rounds}</b>, нужно ${need} верных.</p>
+               <div class="big" data-k="cur">?</div>
+               <div class="row"><button data-k="up">↑ Больше</button><button data-k="down">↓ Меньше</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="score"></p>`,
+        init(root, api) {
+            let i = 0, score = 0, cur = randInt(1, 99);
+            const curEl = $('[data-k=cur]', root), msg = $('[data-k=msg]', root), sc = $('[data-k=score]', root);
+            const up = $('[data-k=up]', root), down = $('[data-k=down]', root);
+            curEl.textContent = cur;
+            const play = guess => {
+                if (i >= rounds) return;
+                let next = randInt(1, 99);
+                while (next === cur) next = randInt(1, 99);
+                const ok = guess === 'up' ? next > cur : next < cur;
+                if (ok) score++;
+                i++;
+                msg.innerHTML = (ok ? '<span class="win">Верно!</span>' : '<span class="lose">Мимо!</span>') +
+                                ' Было ' + cur + ', стало ' + next + '.';
+                cur = next; curEl.textContent = cur;
+                sc.textContent = 'Счёт: ' + score + ' / ' + i;
+                if (i >= rounds) {
+                    up.disabled = down.disabled = true;
+                    if (score >= need) { msg.innerHTML += ' <b class="win">Победа!</b>'; api.win(); }
+                    else msg.innerHTML += ' <b class="lose">Нужно ' + need + ' из ' + rounds + '.</b>';
+                }
+            };
+            up.onclick = () => play('up');
+            down.onclick = () => play('down');
+        }
+    };
+});
+
+/* --- 3. Камень-ножницы-бумага --- */
+mech('rps', 'Камень, ножницы, бумага', rng => {
+    const five = rng() < 0.4;
+    const target = rng() < 0.5 ? 2 : 3;
+    const moves = five ? ['rock', 'paper', 'scissors', 'lizard', 'spock'] : ['rock', 'paper', 'scissors'];
+    const label = { rock:'✊ Камень', paper:'✋ Бумага', scissors:'✌️ Ножницы',
+                    lizard:'🦎 Ящерица', spock:'🖖 Спок' };
+    const beats = five ? {
+        rock: ['scissors', 'lizard'], paper: ['rock', 'spock'],
+        scissors: ['paper', 'lizard'], lizard: ['spock', 'paper'],
+        spock: ['rock', 'scissors']
+    } : { rock: ['scissors'], paper: ['rock'], scissors: ['paper'] };
+    return {
+        html: `<p>До <b>${target}</b> побед.${five ? ' Вариант с ящерицей и Споком!' : ''}</p>
+               <div class="row" data-k="mv"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="score">Ты 0 — 0 Бот</p>`,
+        init(root, api) {
+            let p = 0, b = 0, over = false;
+            const mv = $('[data-k=mv]', root), msg = $('[data-k=msg]', root), sc = $('[data-k=score]', root);
+            const end = () => {
+                over = true;
+                mv.querySelectorAll('button').forEach(x => x.disabled = true);
+            };
+            moves.forEach(m => {
+                const btn = el('button', '', label[m]);
+                btn.onclick = () => {
+                    if (over) return;
+                    const bot = pickBy(Math.random, moves);
+                    let res;
+                    if (bot === m) res = 'd';
+                    else if (beats[m].includes(bot)) { res = 'p'; p++; }
+                    else { res = 'b'; b++; }
+                    msg.innerHTML = (res === 'd' ? 'Ничья.' :
+                        res === 'p' ? '<span class="win">Ты выиграл раунд!</span>' :
+                                       '<span class="lose">Бот выиграл раунд.</span>') +
+                        ' Бот: ' + label[bot];
+                    sc.textContent = 'Ты ' + p + ' — ' + b + ' Бот';
+                    if (p >= target) { msg.innerHTML += ' <b class="win">Победа в матче!</b>'; api.win(); end(); }
+                    else if (b >= target) { msg.innerHTML += ' <b class="lose">Матч проигран.</b>'; end(); }
+                };
+                mv.appendChild(btn);
+            });
+        }
+    };
+});
+
+/* --- 4. Кликер --- */
+mech('click', 'Кликер', rng => {
+    const time = pickBy(rng, [5, 10, 15, 20]);
+    const target = Math.round(time * (4 + rng() * 3));
+    return {
+        html: `<p>Нажми «КЛИК!» минимум <b>${target}</b> раз за <b>${time}</b> секунд.</p>
+               <div class="row"><button data-k="start">Старт</button><button data-k="hit" style="display:none">КЛИК!</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="info"></p>`,
+        init(root, api) {
+            const start = $('[data-k=start]', root), hit = $('[data-k=hit]', root),
+                  msg = $('[data-k=msg]', root), info = $('[data-k=info]', root);
+            let count = 0, left = time, timer = null, running = false;
+            start.onclick = () => {
+                if (running) return;
+                running = true; count = 0; left = time;
+                start.disabled = true; hit.style.display = 'inline-block';
+                msg.innerHTML = '&nbsp;';
+                info.textContent = 'Осталось: ' + left + ' с · Кликов: 0';
+                timer = setInterval(() => {
+                    left--;
+                    if (left <= 0) {
+                        clearInterval(timer); timer = null; running = false;
+                        hit.style.display = 'none'; start.disabled = false;
+                        start.textContent = 'Ещё раз';
+                        if (count >= target) { msg.innerHTML = '<b class="win">Успех! ' + count + ' кликов.</b>'; api.win(); }
+                        else msg.innerHTML = '<b class="lose">Мало: ' + count + ' из ' + target + '.</b>';
+                        info.textContent = 'Время вышло';
+                    } else {
+                        info.textContent = 'Осталось: ' + left + ' с · Кликов: ' + count;
+                    }
+                }, 1000);
+            };
+            hit.onclick = () => {
+                if (!running) return;
+                count++;
+                info.textContent = 'Осталось: ' + left + ' с · Кликов: ' + count;
+            };
+            return () => { if (timer) clearInterval(timer); };
+        }
+    };
+});
+
+/* --- 5. Тест реакции --- */
+mech('react', 'Тест реакции', rng => {
+    const rounds = pickBy(rng, [3, 5]);
+    const threshold = pickBy(rng, [280, 320, 360, 400]);
+    return {
+        html: `<p>${rounds} раунда(ов). Жми, когда поле станет зелёным. Среднее должно быть ≤ <b>${threshold} мс</b>.</p>
+               <button data-k="pad" style="width:100%;height:120px;font-size:22px">Нажми «Старт»</button>
+               <p class="msg" data-k="msg">&nbsp;</p>`,
+        init(root, api) {
+            const pad = $('[data-k=pad]', root), msg = $('[data-k=msg]', root);
+            let state = 'idle', t0 = 0, times = [], timer = null;
+            const set = (txt, bg, fg) => {
+                pad.textContent = txt; pad.style.background = bg; pad.style.color = fg;
+            };
+            pad.onclick = () => {
+                if (state === 'idle') {
+                    state = 'wait';
+                    set('Жди зелёного...', '#222', '#0f0');
+                    msg.innerHTML = '&nbsp;';
+                    timer = setTimeout(() => {
+                        state = 'ready';
+                        t0 = performance.now();
+                        set('ЖМИ!', '#0f0', '#111');
+                    }, 900 + Math.random() * 2500);
+                } else if (state === 'wait') {
+                    clearTimeout(timer);
+                    state = 'idle'; times = [];
+                    set('Рано! Нажми «Старт»', '#222', '#0f0');
+                    msg.innerHTML = '<span class="lose">Ты поспешил — серия сброшена.</span>';
+                } else if (state === 'ready') {
+                    const dt = Math.round(performance.now() - t0);
+                    times.push(dt);
+                    state = 'idle';
+                    if (times.length >= rounds) {
+                        const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+                        set('Ещё раз', '#222', '#0f0');
+                        if (avg <= threshold) { msg.innerHTML = '<b class="win">Среднее ' + avg + ' мс — победа!</b>'; api.win(); }
+                        else msg.innerHTML = '<b class="lose">Среднее ' + avg + ' мс, нужно ≤ ' + threshold + '.</b>';
+                        times = [];
+                    } else {
+                        set('Ещё (' + times.length + '/' + rounds + ')', '#222', '#0f0');
+                        msg.innerHTML = 'Реакция: <b>' + dt + ' мс</b>';
+                    }
+                }
+            };
+            return () => { if (timer) clearTimeout(timer); };
+        }
+    };
+});
+
+/* --- 6. Математика --- */
+mech('math', 'Быстрая математика', rng => {
+    const diff = Math.floor(rng() * 3);
+    const ops = diff === 0 ? ['+', '-'] : diff === 1 ? ['+', '-', '×'] : ['+', '-', '×', '÷'];
+    const total = 5, need = 4;
+    return {
+        html: `<p>${total} примеров. Нужно минимум ${need} верных.</p>
+               <div class="big" data-k="task">&nbsp;</div>
+               <div class="row"><input type="number" class="inp" data-k="ans" placeholder="Ответ">
+               <button data-k="ok">Ответить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const task = $('[data-k=task]', root), ans = $('[data-k=ans]', root),
+                  ok = $('[data-k=ok]', root), msg = $('[data-k=msg]', root),
+                  prog = $('[data-k=prog]', root);
+            let i = 0, score = 0, cur = null;
+            const gen = () => {
+                const op = pickBy(Math.random, ops);
+                let a, b, r;
+                if (op === '+') { a = randInt(10, 30 + diff * 50); b = randInt(10, 30 + diff * 50); r = a + b; }
+                else if (op === '-') { a = randInt(20, 40 + diff * 60); b = randInt(1, a - 1); r = a - b; }
+                else if (op === '×') { a = randInt(2, 4 + diff * 4); b = randInt(2, 4 + diff * 4); r = a * b; }
+                else { b = randInt(2, 9); r = randInt(2, 9); a = b * r; }
+                return { t: a + ' ' + op + ' ' + b + ' = ?', r };
+            };
+            const next = () => {
+                if (i >= total) {
+                    task.textContent = 'Готово!';
+                    ans.disabled = ok.disabled = true;
+                    if (score >= need) { msg.innerHTML = '<b class="win">Победа: ' + score + '/' + total + '</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/' + total + '</b>';
+                    return;
+                }
+                cur = gen(); i++;
+                task.textContent = cur.t;
+                prog.textContent = 'Вопрос ' + i + '/' + total + ' · Верно: ' + score;
+                ans.value = ''; ans.focus();
+            };
+            const submit = () => {
+                if (!cur) return;
+                const v = parseInt(ans.value, 10);
+                if (isNaN(v)) return;
+                if (v === cur.r) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                else msg.innerHTML = '<span class="lose">Нет, ответ: ' + cur.r + '</span>';
+                cur = null;
+                setTimeout(next, 500);
+            };
+            ok.onclick = submit;
+            ans.onkeydown = e => { if (e.key === 'Enter') submit(); };
+            next();
+        }
+    };
+});
+
+/* --- 7. Мемори --- */
+mech('mem', 'Мемори', rng => {
+    const sizes = [[4, 3], [4, 4], [5, 4]];
+    const [cols, rows] = pickBy(rng, sizes);
+    const pairs = (cols * rows) / 2;
+    const pool = ['🍎','🍌','🍇','🍓','🍒','🍑','🥝','🍍','🥑','🍉','🍊','🍋','🥥','🍐','🍄','🌻','⭐','💎','🎈','🎲'];
+    const picks = [];
+    const copy = [...pool];
+    for (let i = 0; i < pairs; i++) picks.push(copy.splice(Math.floor(rng() * copy.length), 1)[0]);
+    const limit = Math.round(pairs * 2.2);
+    return {
+        html: `<p>Найди все пары. Лимит ходов: <b>${limit}</b>.</p>
+               <div class="mgrid" data-k="grid" style="grid-template-columns:repeat(${cols},1fr);max-width:${cols * 72}px"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="info">Ходов: 0</p>`,
+        init(root, api) {
+            const grid = $('[data-k=grid]', root), msg = $('[data-k=msg]', root), info = $('[data-k=info]', root);
+            const cards = [...picks, ...picks].map(v => ({ v, open: false, done: false }));
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            let openIdx = [], moves = 0, lock = false, found = 0;
+            cards.forEach((c, idx) => {
+                const b = el('button', 'mcard', '?');
+                b.onclick = () => {
+                    if (lock || c.open || c.done) return;
+                    c.open = true;
+                    b.textContent = c.v;
+                    b.classList.add('open');
+                    openIdx.push(idx);
+                    if (openIdx.length === 2) {
+                        const [a, b2] = openIdx;
+                        moves++;
+                        info.textContent = 'Ходов: ' + moves;
+                        if (cards[a].v === cards[b2].v) {
+                            cards[a].done = cards[b2].done = true;
+                            found++;
+                            grid.children[a].classList.add('done');
+                            grid.children[b2].classList.add('done');
+                            openIdx = [];
+                            if (found === pairs) {
+                                if (moves <= limit) { msg.innerHTML = '<b class="win">Все пары за ' + moves + ' ходов — победа!</b>'; api.win(); }
+                                else msg.innerHTML = '<b class="lose">Пары найдены, но ходов ' + moves + ' > ' + limit + '</b>';
+                            }
+                        } else {
+                            lock = true;
+                            setTimeout(() => {
+                                for (const k of [a, b2]) {
+                                    cards[k].open = false;
+                                    grid.children[k].textContent = '?';
+                                    grid.children[k].classList.remove('open');
+                                }
+                                openIdx = [];
+                                lock = false;
+                            }, 700);
+                        }
+                    }
+                };
+                grid.appendChild(b);
+            });
+        }
+    };
+});
+
+/* --- 8. Саймон --- */
+mech('simon', 'Повтори последовательность', () => {
+    const colors = [['#f55'], ['#5f5'], ['#55f'], ['#ff5']];
+    return {
+        html: `<p>Повтори последовательность огней. 3 раунда — длина растёт.</p>
+               <div class="simon" data-k="pads"></div>
+               <div class="row"><button data-k="start">Старт</button></div>
+               <p class="msg" data-k="msg">Нажми «Старт»</p>`,
+        init(root, api) {
+            const pads = $('[data-k=pads]', root), msg = $('[data-k=msg]', root),
+                  btnStart = $('[data-k=start]', root);
+            const btns = colors.map(([c]) => {
+                const b = el('button', 'pad');
+                b.style.background = c;
+                pads.appendChild(b);
+                return b;
+            });
+            let seq = [], input = [], round = 0, playing = false, timers = [];
+
+            const flash = (i, ms) => {
+                const b = btns[i];
+                b.style.opacity = 1;
+                b.style.transform = 'scale(1.08)';
+                timers.push(setTimeout(() => { b.style.opacity = 0.45; b.style.transform = ''; }, ms || 350));
+            };
+            const playSeq = () => {
+                playing = true;
+                msg.textContent = 'Смотри...';
+                input = [];
+                seq.forEach((v, k) => timers.push(setTimeout(() => flash(v), 600 * k)));
+                timers.push(setTimeout(() => {
+                    playing = false;
+                    msg.textContent = 'Повтори!';
+                }, 600 * seq.length + 200));
+            };
+            const startRound = () => {
+                round++;
+                if (round > 3) {
+                    msg.innerHTML = '<b class="win">Все раунды пройдены — победа!</b>';
+                    api.win();
+                    return;
+                }
+                seq = [];
+                for (let i = 0; i < round + 2; i++) seq.push(Math.floor(Math.random() * 4));
+                msg.textContent = 'Раунд ' + round + '/3 · длина ' + seq.length;
+                timers.push(setTimeout(playSeq, 700));
+            };
+            btns.forEach((b, i) => {
+                b.onclick = () => {
+                    if (playing || !seq.length) return;
+                    flash(i, 150);
+                    input.push(i);
+                    const k = input.length - 1;
+                    if (input[k] !== seq[k]) {
+                        msg.innerHTML = '<b class="lose">Ошибка! Нажми «Старт» заново.</b>';
+                        seq = []; round = 0; input = [];
+                        return;
+                    }
+                    if (input.length === seq.length) {
+                        playing = true;
+                        msg.textContent = 'Верно!';
+                        timers.push(setTimeout(() => { playing = false; startRound(); }, 600));
+                    }
+                };
+            });
+            btnStart.onclick = () => {
+                timers.forEach(clearTimeout);
+                timers = [];
+                round = 0; seq = []; input = []; playing = false;
+                startRound();
+            };
+            return () => timers.forEach(clearTimeout);
+        }
+    };
+});
+
+/* --- 9. Виселица --- */
+mech('hang', 'Виселица', rng => {
+    const words = ['СОБАКА','МОЛОКО','ЯБЛОКО','КОРОВА','ВОРОНА','ДЕРЕВО','КАРТИНА',
+                   'ПЛАНЕТА','БИБЛИОТЕКА','КОМПЬЮТЕР','ТЕЛЕФОН','МАШИНА','ОКЕАН',
+                   'ПИРАТ','ЗАМОК','СВЕТОФОР'];
+    const word = pickBy(rng, words);
+    const maxErr = pickBy(rng, [5, 6, 7]);
+    return {
+        html: `<p>Слово из <b>${word.length}</b> букв. Ошибок допустимо: <b>${maxErr}</b>.</p>
+               <div class="big" data-k="word" style="letter-spacing:8px"></div>
+               <div class="row"><input maxlength="1" class="inp" data-k="in" placeholder="Буква" style="width:80px;text-transform:uppercase">
+               <button data-k="ok">Ввести</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="used"></p>`,
+        init(root, api) {
+            const wordEl = $('[data-k=word]', root), inp = $('[data-k=in]', root),
+                  ok = $('[data-k=ok]', root), msg = $('[data-k=msg]', root),
+                  used = $('[data-k=used]', root);
+            const guessed = new Set();
+            let errors = 0, over = false;
+            const render = () => {
+                wordEl.textContent = [...word].map(ch => guessed.has(ch) ? ch : '_').join(' ');
+            };
+            const submit = () => {
+                if (over) return;
+                const ch = (inp.value || '').toUpperCase().trim();
+                inp.value = '';
+                if (!/^[А-ЯЁ]$/.test(ch)) { msg.textContent = 'Введи одну русскую букву'; return; }
+                if (guessed.has(ch)) { msg.textContent = 'Эта буква уже была'; return; }
+                guessed.add(ch);
+                if (word.includes(ch)) msg.innerHTML = '<span class="win">Есть такая буква!</span>';
+                else { errors++; msg.innerHTML = '<span class="lose">Нет такой. Ошибок: ' + errors + '/' + maxErr + '</span>'; }
+                render();
+                used.textContent = 'Использовано: ' + [...guessed].join(', ');
+                if ([...word].every(c => guessed.has(c))) {
+                    msg.innerHTML = '<b class="win">Победа! Слово: ' + word + '</b>';
+                    over = true; ok.disabled = true; api.win();
+                } else if (errors >= maxErr) {
+                    msg.innerHTML = '<b class="lose">Проигрыш. Слово было: ' + word + '</b>';
+                    over = true; ok.disabled = true;
+                }
+            };
+            ok.onclick = submit;
+            inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+            render();
+            inp.focus();
+        }
+    };
+});
+
+/* --- 10. Анаграмма --- */
+mech('anagram', 'Анаграмма', rng => {
+    const words = ['КОСМОС','ПЛАНЕТА','РАКЕТА','ЗВЕЗДА','ГАЛАКТИКА','ТЕЛЕСКОП',
+                   'ОРБИТА','КОМЕТА','СПУТНИК','АСТРОНОМ'];
+    const word = pickBy(rng, words);
+    return {
+        html: `<p>Расставь буквы в правильном порядке. Подсказка — первая буква.</p>
+               <div class="big" data-k="scr"></div>
+               <p>Начинается на «<b>${word[0]}</b>»</p>
+               <div class="row"><input class="inp" data-k="in" placeholder="Слово" style="width:220px">
+               <button data-k="ok">Проверить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p>`,
+        init(root, api) {
+            const a = [...word];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            $('[data-k=scr]', root).textContent = a.join(' ');
+            const inp = $('[data-k=in]', root), msg = $('[data-k=msg]', root),
+                  ok = $('[data-k=ok]', root);
+            let over = false;
+            const check = () => {
+                if (over) return;
+                if (inp.value.trim().toUpperCase() === word) {
+                    msg.innerHTML = '<b class="win">Верно! Это ' + word + '</b>';
+                    over = true; ok.disabled = true; api.win();
+                } else {
+                    msg.innerHTML = '<span class="lose">Не то. Попробуй ещё.</span>';
+                }
+            };
+            ok.onclick = check;
+            inp.onkeydown = e => { if (e.key === 'Enter') check(); };
+            inp.focus();
+        }
+    };
+});
+
+/* --- 11. Найди лишнее --- */
+mech('odd', 'Найди лишнее', rng => {
+    const pairs = [['🍎','🍅'],['🐶','🐺'],['🌕','🌑'],['⭐','🌟'],['🔴','🟠'],
+                   ['🐱','🐯'],['🍇','🫐'],['😀','😄'],['🚗','🚙'],['⚽','🏀']];
+    const size = pickBy(rng, [3, 4]);
+    const rounds = 5, need = 4;
+    return {
+        html: `<p>Найди отличающийся символ. Раундов: ${rounds}, нужно ${need}.</p>
+               <div class="mgrid" data-k="grid" style="grid-template-columns:repeat(${size},1fr);max-width:${size * 76}px"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const grid = $('[data-k=grid]', root), msg = $('[data-k=msg]', root),
+                  prog = $('[data-k=prog]', root);
+            let r = 0, score = 0, lock = false;
+            const round = () => {
+                if (r >= rounds) {
+                    grid.innerHTML = '';
+                    if (score >= need) { msg.innerHTML = '<b class="win">Победа: ' + score + '/' + rounds + '</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/' + rounds + '</b>';
+                    return;
+                }
+                lock = false;
+                const [base, odd] = pickBy(Math.random, pairs);
+                const total = size * size;
+                const oddIdx = Math.floor(Math.random() * total);
+                grid.innerHTML = '';
+                for (let i = 0; i < total; i++) {
+                    const b = el('button', 'mcard', i === oddIdx ? odd : base);
+                    b.onclick = () => {
+                        if (lock) return;
+                        lock = true;
+                        if (i === oddIdx) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                        else msg.innerHTML = '<span class="lose">Нет, лишнее было ' + odd + '</span>';
+                        r++;
+                        prog.textContent = 'Верно: ' + score + ' / ' + r;
+                        setTimeout(round, 600);
+                    };
+                    grid.appendChild(b);
+                }
+                prog.textContent = 'Верно: ' + score + ' / ' + r + ' · Раунд ' + (r + 1) + '/' + rounds;
+            };
+            round();
+        }
+    };
+});
+
+/* --- 12. Правда или ложь --- */
+mech('tf', 'Правда или ложь', rng => {
+    const facts = [
+        ['Вода кипит при 100 °C на уровне моря.', true],
+        ['Столица Австралии — Сидней.', false],
+        ['У паука шесть ног.', false],
+        ['Земля — третья планета от Солнца.', true],
+        ['Скорость света больше скорости звука.', true],
+        ['В сутках 24 часа.', true],
+        ['Пингвины умеют летать.', false],
+        ['Волга впадает в Каспийское море.', true],
+        ['Эверест — самая высокая гора на Земле.', true],
+        ['Кит — рыба.', false],
+        ['Луна — спутник Земли.', true],
+        ['В году 12 месяцев.', true],
+        ['Байкал — самое глубокое озеро мира.', true],
+        ['У квадрата пять сторон.', false],
+        ['Лев — травоядное животное.', false],
+        ['Меркурий — самая близкая к Солнцу планета.', true],
+        ['Страус умеет летать.', false],
+        ['В одной минуте 60 секунд.', true],
+        ['Солнце — звезда.', true],
+        ['Амазонка протекает по Африке.', false]
+    ];
+    const qs = [];
+    const pool = [...facts];
+    for (let i = 0; i < 5; i++) qs.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    return {
+        html: `<p>5 утверждений. Нужно 4 верных ответа.</p>
+               <div class="big" data-k="q" style="font-size:19px;line-height:1.5"></div>
+               <div class="row"><button data-k="t">✅ Правда</button><button data-k="f">❌ Ложь</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const qEl = $('[data-k=q]', root), msg = $('[data-k=msg]', root),
+                  prog = $('[data-k=prog]', root), t = $('[data-k=t]', root),
+                  f = $('[data-k=f]', root);
+            let i = 0, score = 0;
+            const next = () => {
+                if (i >= qs.length) {
+                    qEl.textContent = 'Готово!';
+                    t.disabled = f.disabled = true;
+                    if (score >= 4) { msg.innerHTML = '<b class="win">Победа: ' + score + '/5</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/5</b>';
+                    return;
+                }
+                qEl.textContent = qs[i][0];
+                prog.textContent = 'Вопрос ' + (i + 1) + '/5 · Верно: ' + score;
+            };
+            const answer = val => {
+                if (i >= qs.length) return;
+                const correct = qs[i][1] === val;
+                if (correct) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                else msg.innerHTML = '<span class="lose">Неверно — это ' + (qs[i][1] ? 'правда' : 'ложь') + '</span>';
+                i++;
+                t.disabled = f.disabled = true;
+                setTimeout(() => { t.disabled = f.disabled = false; msg.innerHTML = '&nbsp;'; next(); }, 700);
+            };
+            t.onclick = () => answer(true);
+            f.onclick = () => answer(false);
+            next();
+        }
+    };
+});
+
+/* --- 13. Поймай цель --- */
+mech('whack', 'Поймай цель', rng => {
+    const time = pickBy(rng, [10, 15, 20]);
+    const need = Math.round(time * (1 + rng() * 0.6));
+    return {
+        html: `<p>Нажимай на зелёный круг. Нужно <b>${need}</b> попаданий за <b>${time}</b> с.</p>
+               <div class="arena" data-k="arena"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="info"></p>`,
+        init(root, api) {
+            const arena = $('[data-k=arena]', root), msg = $('[data-k=msg]', root),
+                  info = $('[data-k=info]', root);
+            const t = el('button', 'target', '🎯');
+            arena.appendChild(t);
+            let hits = 0, left = time, timer = null, over = false;
+            const place = () => {
+                t.style.left = (4 + Math.random() * 82) + '%';
+                t.style.top = (6 + Math.random() * 76) + '%';
+            };
+            place();
+            t.onclick = () => {
+                if (over) return;
+                hits++;
+                info.textContent = 'Попаданий: ' + hits + ' · Осталось: ' + left + ' с';
+                place();
+            };
+            info.textContent = 'Попаданий: 0 · Осталось: ' + left + ' с';
+            timer = setInterval(() => {
+                left--;
+                if (left <= 0) {
+                    clearInterval(timer); timer = null; over = true;
+                    t.style.display = 'none';
+                    if (hits >= need) { msg.innerHTML = '<b class="win">Успех! ' + hits + ' попаданий.</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Мало: ' + hits + ' из ' + need + '.</b>';
+                } else {
+                    info.textContent = 'Попаданий: ' + hits + ' · Осталось: ' + left + ' с';
+                }
+            }, 1000);
+            return () => { if (timer) clearInterval(timer); };
+        }
+    };
+});
+
+/* --- 14. Печать текста --- */
+mech('type', 'Скорость печати', rng => {
+    const phrases = [
+        'быстрая коричневая лиса прыгает через ленивую собаку',
+        'программирование это искусство решать задачи',
+        'в космосе никто не услышит твой крик',
+        'сто тысяч почему живут в голове ребёнка',
+        'тише едешь дальше будешь'
+    ];
+    const phrase = pickBy(rng, phrases);
+    const limitMs = phrase.length * 130 + 2000;
+    return {
+        html: `<p>Напечатай фразу точно. Лимит: <b>${(limitMs / 1000).toFixed(1)} с</b> после первого символа.</p>
+               <p style="font-size:18px;color:#0ff">${phrase}</p>
+               <div class="row"><input class="inp" data-k="in" style="width:320px" placeholder="Начни печатать...">
+               <button data-k="ok">Проверить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p>`,
+        init(root, api) {
+            const inp = $('[data-k=in]', root), msg = $('[data-k=msg]', root),
+                  ok = $('[data-k=ok]', root);
+            let start = null, over = false;
+            inp.addEventListener('input', () => {
+                if (start === null && inp.value.length) start = performance.now();
+            });
+            const check = () => {
+                if (over) return;
+                if (start === null) { msg.textContent = 'Сначала начни печатать'; return; }
+                const dt = performance.now() - start;
+                if (inp.value.trim() !== phrase) {
+                    msg.innerHTML = '<span class="lose">Текст не совпадает. Попробуй ещё.</span>';
+                    return;
+                }
+                if (dt <= limitMs) {
+                    msg.innerHTML = '<b class="win">Точно и быстро! ' + (dt / 1000).toFixed(1) + ' с</b>';
+                    api.win();
+                } else {
+                    msg.innerHTML = '<b class="lose">Точно, но медленно: ' + (dt / 1000).toFixed(1) + ' с</b>';
+                }
+                over = true; ok.disabled = true;
+            };
+            ok.onclick = check;
+            inp.onkeydown = e => { if (e.key === 'Enter') check(); };
+            inp.focus();
+        }
+    };
+});
+
+/* --- 15. Последовательность чисел --- */
+mech('seq', 'Продолжи последовательность', rng => {
+    const rounds = 4, need = 3;
+    return {
+        html: `<p>Найди следующее число. Раундов: ${rounds}, нужно ${need}.</p>
+               <div class="big" data-k="task"></div>
+               <div class="row"><input type="number" class="inp" data-k="in" placeholder="Следующее">
+               <button data-k="ok">Ответить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const task = $('[data-k=task]', root), inp = $('[data-k=in]', root),
+                  ok = $('[data-k=ok]', root), msg = $('[data-k=msg]', root),
+                  prog = $('[data-k=prog]', root);
+            let i = 0, score = 0, answer = 0, over = false;
+            const gen = () => {
+                const type = randInt(0, 3);
+                let arr = [];
+                if (type === 0) {
+                    const a = randInt(1, 20), d = randInt(2, 9);
+                    for (let k = 0; k < 5; k++) arr.push(a + d * k);
+                } else if (type === 1) {
+                    const a = randInt(1, 5), r = randInt(2, 4);
+                    for (let k = 0; k < 5; k++) arr.push(a * Math.pow(r, k));
+                } else if (type === 2) {
+                    const a = randInt(1, 10);
+                    for (let k = 0; k < 5; k++) arr.push((a + k) * (a + k));
+                } else {
+                    let x = randInt(1, 5), y = randInt(2, 8);
+                    for (let k = 0; k < 5; k++) { arr.push(x); [x, y] = [y, x + y]; }
+                }
+                answer = arr.pop();
+                return arr;
+            };
+            const next = () => {
+                if (i >= rounds) {
+                    task.textContent = 'Готово!';
+                    inp.disabled = ok.disabled = true;
+                    if (score >= need) { msg.innerHTML = '<b class="win">Победа: ' + score + '/' + rounds + '</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/' + rounds + '</b>';
+                    return;
+                }
+                const arr = gen();
+                task.textContent = arr.join(', ') + ', ?';
+                prog.textContent = 'Вопрос ' + (i + 1) + '/' + rounds + ' · Верно: ' + score;
+                inp.value = ''; inp.focus();
+            };
+            const submit = () => {
+                if (over || inp.disabled) return;
+                const v = parseInt(inp.value, 10);
+                if (isNaN(v)) return;
+                if (v === answer) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                else msg.innerHTML = '<span class="lose">Нет, ответ: ' + answer + '</span>';
+                i++;
+                inp.disabled = ok.disabled = true;
+                setTimeout(() => { inp.disabled = ok.disabled = false; msg.innerHTML = '&nbsp;'; next(); }, 700);
+            };
+            ok.onclick = submit;
+            inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+            next();
+        }
+    };
+});
+
+/* --- 16. Крестики-нолики --- */
+mech('ttt', 'Крестики-нолики', () => {
+    return {
+        html: `<p>Ты — ❌. Собери три в ряд раньше бота.</p>
+               <div class="ttt" data-k="board"></div>
+               <p class="msg" data-k="msg">&nbsp;</p>
+               <div class="row"><button data-k="reset">Заново</button></div>`,
+        init(root, api) {
+            const boardEl = $('[data-k=board]', root), msg = $('[data-k=msg]', root),
+                  resetBtn = $('[data-k=reset]', root);
+            const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+            let board, over;
+
+            const winner = b => {
+                for (const [a, c, d] of lines) {
+                    if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+                }
+                return b.every(x => x) ? 'draw' : null;
+            };
+            const botMove = b => {
+                for (const p of ['O', 'X']) {
+                    for (const [a, c, d] of lines) {
+                        const v = [b[a], b[c], b[d]];
+                        if (v.filter(x => x === p).length === 2 && v.includes('')) {
+                            return [a, c, d][v.indexOf('')];
+                        }
+                    }
+                }
+                if (!b[4]) return 4;
+                const corners = [0,2,6,8].filter(i => !b[i]);
+                if (corners.length) return pickBy(Math.random, corners);
+                const empty = b.map((v, i) => v ? null : i).filter(i => i !== null);
+                return pickBy(Math.random, empty);
+            };
+            const render = () => {
+                boardEl.innerHTML = '';
+                board.forEach((v, i) => {
+                    const b = el('button', '', v || '');
+                    b.onclick = () => move(i);
+                    boardEl.appendChild(b);
+                });
+            };
+            const finish = res => {
+                over = true;
+                if (res === 'X') { msg.innerHTML = '<b class="win">Ты победил!</b>'; api.win(); }
+                else if (res === 'O') msg.innerHTML = '<b class="lose">Бот победил.</b>';
+                else msg.innerHTML = '<b>Ничья.</b>';
+            };
+            const move = i => {
+                if (over || board[i]) return;
+                board[i] = 'X';
+                let res = winner(board);
+                if (res) { render(); finish(res); return; }
+                render();
+                msg.textContent = 'Бот думает...';
+                setTimeout(() => {
+                    const bm = botMove(board);
+                    board[bm] = 'O';
+                    render();
+                    res = winner(board);
+                    if (res) finish(res);
+                    else msg.innerHTML = '&nbsp;';
+                }, 350);
+            };
+            const reset = () => {
+                board = Array(9).fill('');
+                over = false;
+                msg.innerHTML = '&nbsp;';
+                render();
+            };
+            resetBtn.onclick = reset;
+            reset();
+        }
+    };
+});
+
+/* --- 17. Струуп --- */
+mech('stroop', 'Цвет чернил', rng => {
+    const COLORS = {
+        'КРАСНЫЙ': '#f55', 'ЗЕЛЁНЫЙ': '#5f5', 'СИНИЙ': '#66f',
+        'ЖЁЛТЫЙ': '#ff5', 'ФИОЛЕТОВЫЙ': '#c5f', 'ОРАНЖЕВЫЙ': '#f95'
+    };
+    const names = Object.keys(COLORS);
+    const rounds = 6, need = 5;
+    return {
+        html: `<p>Выбери <b>цвет чернил</b>, а не то, что написано. ${rounds} раундов, нужно ${need}.</p>
+               <div class="big" data-k="word" style="font-size:46px;font-weight:bold"></div>
+               <div class="row" data-k="opts"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const wordEl = $('[data-k=word]', root), opts = $('[data-k=opts]', root),
+                  msg = $('[data-k=msg]', root), prog = $('[data-k=prog]', root);
+            let i = 0, score = 0, correct = '', lock = false;
+            const round = () => {
+                if (i >= rounds) {
+                    wordEl.textContent = '';
+                    opts.innerHTML = '';
+                    if (score >= need) { msg.innerHTML = '<b class="win">Победа: ' + score + '/' + rounds + '</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/' + rounds + '</b>';
+                    return;
+                }
+                lock = false;
+                const wordName = pickBy(Math.random, names);
+                let inkName = pickBy(Math.random, names);
+                while (inkName === wordName) inkName = pickBy(Math.random, names);
+                correct = inkName;
+                wordEl.textContent = wordName;
+                wordEl.style.color = COLORS[inkName];
+                const optsNames = [inkName];
+                while (optsNames.length < 4) {
+                    const n = pickBy(Math.random, names);
+                    if (!optsNames.includes(n)) optsNames.push(n);
+                }
+                for (let k = optsNames.length - 1; k > 0; k--) {
+                    const j = Math.floor(Math.random() * (k + 1));
+                    [optsNames[k], optsNames[j]] = [optsNames[j], optsNames[k]];
+                }
+                opts.innerHTML = '';
+                optsNames.forEach(n => {
+                    const b = el('button', '', n);
+                    b.style.color = COLORS[n];
+                    b.onclick = () => {
+                        if (lock) return;
+                        lock = true;
+                        if (n === correct) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                        else msg.innerHTML = '<span class="lose">Нет, чернила были ' + correct + '</span>';
+                        i++;
+                        prog.textContent = 'Верно: ' + score + ' / ' + i;
+                        setTimeout(round, 650);
+                    };
+                    opts.appendChild(b);
+                });
+                prog.textContent = 'Верно: ' + score + ' / ' + i + ' · Раунд ' + (i + 1) + '/' + rounds;
+            };
+            round();
+        }
+    };
+});
+
+/* --- 18. Дуэль на кубиках --- */
+mech('dice', 'Дуэль на кубиках', rng => {
+    const target = pickBy(rng, [2, 3, 4]);
+    const faces = [
+        ['⚀',1],['⚁',2],['⚂',3],['⚃',4],['⚄',5],['⚅',6]
+    ];
+    return {
+        html: `<p>Первый до <b>${target}</b> побед. Бросай кубик!</p>
+               <div class="big" data-k="dice" style="font-size:52px">⚀ ⚀</div>
+               <div class="row"><button data-k="roll">🎲 Бросить</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="score">Ты 0 — 0 Бот</p>`,
+        init(root, api) {
+            const diceEl = $('[data-k=dice]', root), msg = $('[data-k=msg]', root),
+                  sc = $('[data-k=score]', root), rollBtn = $('[data-k=roll]', root);
+            let p = 0, b = 0, over = false;
+            rollBtn.onclick = () => {
+                if (over) return;
+                const pv = randInt(1, 6), bv = randInt(1, 6);
+                diceEl.textContent = faces[pv - 1][0] + ' ' + faces[bv - 1][0];
+                if (pv > bv) { p++; msg.innerHTML = '<span class="win">Ты выиграл раунд!</span>'; }
+                else if (pv < bv) { b++; msg.innerHTML = '<span class="lose">Бот выиграл раунд.</span>'; }
+                else msg.innerHTML = '<b>Ничья — перебрасываем.</b>';
+                sc.textContent = 'Ты ' + p + ' — ' + b + ' Бот';
+                if (p >= target) { msg.innerHTML += ' <b class="win">Победа в дуэли!</b>'; api.win(); over = true; rollBtn.disabled = true; }
+                else if (b >= target) { msg.innerHTML += ' <b class="lose">Дуэль проиграна.</b>'; over = true; rollBtn.disabled = true; }
+            };
+        }
+    };
+});
+
+/* --- 19. Текстовый квест --- */
+mech('adv', 'Текстовый квест', rng => {
+    const places = ['тёмная пещера','заброшенный храм','густой лес','ледяной перевал','древние руины'];
+    const foes = ['гоблин','дракон','призрак','каменный голем','гигантский паук'];
+    const items = ['меч','факел','зелье','верёвка','амулет'];
+    const stages = [];
+    for (let i = 0; i < 3; i++) {
+        stages.push({
+            place: pickBy(rng, places),
+            foe: pickBy(rng, foes),
+            item: pickBy(rng, items)
+        });
+    }
+    return {
+        html: `<p>3 испытания. У тебя 3 жизни. Выбирай действия мудро.</p>
+               <div data-k="txt" style="font-size:18px;line-height:1.5;min-height:60px"></div>
+               <div class="row" data-k="opts"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="hp"></p>`,
+        init(root, api) {
+            const txt = $('[data-k=txt]', root), opts = $('[data-k=opts]', root),
+                  msg = $('[data-k=msg]', root), hpEl = $('[data-k=hp]', root);
+            let hp = 3, stage = 0, over = false;
+            const render = () => {
+                hpEl.textContent = '❤️ Жизни: ' + hp + ' · Испытание ' + Math.min(stage + 1, 3) + '/3';
+                if (stage >= 3) {
+                    txt.textContent = 'Ты прошёл все испытания!';
+                    opts.innerHTML = '';
+                    if (hp > 0) { msg.innerHTML = '<b class="win">Победа!</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Ты не выжил.</b>';
+                    return;
+                }
+                const s = stages[stage];
+                txt.textContent = 'Ты в ' + s.place + '. Перед тобой ' + s.foe + '.';
+                opts.innerHTML = '';
+                const choices = [
+                    { label: '⚔️ Атаковать', chance: 0.6, ok: 'Ты победил врага!', fail: 'Враг ранил тебя.' },
+                    { label: '🎒 Использовать ' + s.item, chance: 0.75, ok: s.item + ' помог — путь свободен!', fail: 'Не сработало...' },
+                    { label: '🏃 Обойти', chance: 0.5, ok: 'Ты тихо обошёл опасность.', fail: 'Тебя заметили!' }
+                ];
+                choices.forEach(c => {
+                    const b = el('button', '', c.label);
+                    b.onclick = () => {
+                        if (over) return;
+                        if (Math.random() < c.chance) msg.innerHTML = '<span class="win">' + c.ok + '</span>';
+                        else { hp--; msg.innerHTML = '<span class="lose">' + c.fail + ' −1 жизнь</span>'; }
+                        stage++;
+                        opts.querySelectorAll('button').forEach(x => x.disabled = true);
+                        setTimeout(() => {
+                            if (hp <= 0) {
+                                over = true;
+                                txt.textContent = 'Ты погиб...';
+                                opts.innerHTML = '';
+                                hpEl.textContent = '❤️ Жизни: 0';
+                                msg.innerHTML = '<b class="lose">Поражение</b>';
+                            } else render();
+                        }, 800);
+                    };
+                    opts.appendChild(b);
+                });
+            };
+            render();
+        }
+    };
+});
+
+/* --- 20. Орёл или решка --- */
+mech('coin', 'Орёл или решка', rng => {
+    const rounds = 5, need = 4;
+    return {
+        html: `<p>Угадай сторону монеты. ${rounds} бросков, нужно ${need}.</p>
+               <div class="big" data-k="coin" style="font-size:46px">🪙</div>
+               <div class="row"><button data-k="h">🦅 Орёл</button><button data-k="t">🌿 Решка</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const coin = $('[data-k=coin]', root), msg = $('[data-k=msg]', root),
+                  prog = $('[data-k=prog]', root), h = $('[data-k=h]', root), t = $('[data-k=t]', root);
+            let i = 0, score = 0;
+            const play = guess => {
+                if (i >= rounds) return;
+                const res = Math.random() < 0.5 ? 'h' : 't';
+                coin.textContent = res === 'h' ? '🦅' : '🌿';
+                if (res === guess) { score++; msg.innerHTML = '<span class="win">Угадал!</span>'; }
+                else msg.innerHTML = '<span class="lose">Не угадал.</span>';
+                i++;
+                prog.textContent = 'Счёт: ' + score + ' / ' + i;
+                if (i >= rounds) {
+                    h.disabled = t.disabled = true;
+                    if (score >= need) { msg.innerHTML += ' <b class="win">Победа!</b>'; api.win(); }
+                    else msg.innerHTML += ' <b class="lose">Нужно ' + need + ' из ' + rounds + '.</b>';
+                }
+            };
+            h.onclick = () => play('h');
+            t.onclick = () => play('t');
+        }
+    };
+});
+
+/* --- 21. Столицы --- */
+mech('capitals', 'Столицы мира', rng => {
+    const data = [
+        ['Россия','Москва'],['Франция','Париж'],['Германия','Берлин'],['Италия','Рим'],
+        ['Испания','Мадрид'],['Япония','Токио'],['Китай','Пекин'],['Индия','Нью-Дели'],
+        ['Бразилия','Бразилиа'],['Канада','Оттава'],['Австралия','Канберра'],['Египет','Каир'],
+        ['Турция','Анкара'],['Польша','Варшава'],['Греция','Афины'],['Швеция','Стокгольм'],
+        ['Норвегия','Осло'],['Финляндия','Хельсинки'],['Португалия','Лиссабон'],['Мексика','Мехико']
+    ];
+    const pool = [...data];
+    const qs = [];
+    for (let i = 0; i < 5; i++) qs.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    return {
+        html: `<p>5 вопросов. Нужно 4 верных.</p>
+               <div class="big" data-k="q" style="font-size:20px"></div>
+               <div class="row" data-k="opts"></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const qEl = $('[data-k=q]', root), opts = $('[data-k=opts]', root),
+                  msg = $('[data-k=msg]', root), prog = $('[data-k=prog]', root);
+            let i = 0, score = 0, lock = false;
+            const next = () => {
+                if (i >= qs.length) {
+                    qEl.textContent = 'Готово!';
+                    opts.innerHTML = '';
+                    if (score >= 4) { msg.innerHTML = '<b class="win">Победа: ' + score + '/5</b>'; api.win(); }
+                    else msg.innerHTML = '<b class="lose">Результат: ' + score + '/5</b>';
+                    return;
+                }
+                lock = false;
+                const [country, capital] = qs[i];
+                qEl.textContent = 'Столица страны ' + country + '?';
+                const options = [capital];
+                while (options.length < 3) {
+                    const c = pickBy(Math.random, data)[1];
+                    if (!options.includes(c)) options.push(c);
+                }
+                for (let k = options.length - 1; k > 0; k--) {
+                    const j = Math.floor(Math.random() * (k + 1));
+                    [options[k], options[j]] = [options[j], options[k]];
+                }
+                opts.innerHTML = '';
+                options.forEach(c => {
+                    const b = el('button', '', c);
+                    b.onclick = () => {
+                        if (lock) return;
+                        lock = true;
+                        if (c === capital) { score++; msg.innerHTML = '<span class="win">Верно!</span>'; }
+                        else msg.innerHTML = '<span class="lose">Нет, это ' + capital + '</span>';
+                        i++;
+                        prog.textContent = 'Верно: ' + score + ' / ' + i;
+                        setTimeout(next, 650);
+                    };
+                    opts.appendChild(b);
+                });
+                prog.textContent = 'Верно: ' + score + ' / ' + i + ' · Вопрос ' + (i + 1) + '/5';
+            };
+            next();
+        }
+    };
+});
+
+/* --- 22. Останови полосу --- */
+mech('bar', 'Останови полосу', rng => {
+    const speed = 0.8 + rng() * 0.9;
+    const zoneW = 12 + rng() * 8;
+    const zoneStart = 20 + rng() * 55;
+    const attempts = 3, need = 2;
+    return {
+        html: `<p>Останови бегунок в зелёной зоне. ${attempts} попытки, нужно ${need} попадания.</p>
+               <div class="bar-wrap" data-k="wrap">
+                   <div class="bar-zone" data-k="zone" style="left:${zoneStart}%;width:${zoneW}%"></div>
+                   <div class="bar" data-k="bar" style="left:0"></div>
+               </div>
+               <div class="row"><button data-k="stop">СТОП</button></div>
+               <p class="msg" data-k="msg">&nbsp;</p><p data-k="prog"></p>`,
+        init(root, api) {
+            const bar = $('[data-k=bar]', root), stopBtn = $('[data-k=stop]', root),
+                  msg = $('[data-k=msg]', root), prog = $('[data-k=prog]', root);
+            let pos = 0, dir = 1, hits = 0, used = 0, running = true;
+            const timer = setInterval(() => {
+                if (!running) return;
+                pos += dir * speed;
+                if (pos >= 100) { pos = 100; dir = -1; }
+                if (pos <= 0) { pos = 0; dir = 1; }
+                bar.style.left = pos + '%';
+            }, 16);
+            stopBtn.onclick = () => {
+                if (!running) return;
+                used++;
+                const inZone = pos >= zoneStart && pos <= zoneStart + zoneW;
+                if (inZone) { hits++; msg.innerHTML = '<span class="win">Попадание!</span>'; }
+                else msg.innerHTML = '<span class="lose">Мимо.</span>';
+                prog.textContent = 'Попаданий: ' + hits + ' / ' + used;
+                if (hits >= need) {
+                    running = false; stopBtn.disabled = true;
+                    msg.innerHTML = '<b class="win">Победа!</b>'; api.win();
+                } else if (used >= attempts) {
+                    running = false; stopBtn.disabled = true;
+                    msg.innerHTML = '<b class="lose">Попытки кончились.</b>';
+                }
+            };
+            return () => clearInterval(timer);
+        }
+    };
+});
+
+/* ============================================================
+   ДЕТЕРМИНИРОВАННАЯ СБОРКА ИГР
+   ============================================================ */
+const META = {};
+function buildMeta() {
+    for (let i = 1; i <= 1000; i++) {
+        const rng = mulberry32(hash32(i * 7919 + 13));
+        const m = MECHANICS[Math.floor(rng() * MECHANICS.length)];
+        META[i] = { mech: m.name, id: m.id };
+    }
+}
+
+const gameCache = new Map();
+function buildGame(num) {
+    if (gameCache.has(num)) return gameCache.get(num);
+    const rng = mulberry32(hash32(num * 7919 + 13));
+    const m = MECHANICS[Math.floor(rng() * MECHANICS.length)];
+    const cfg = m.make(rng, num);
+    const g = {
+        num,
+        mechanic: m.name,
+        title: titleFor(m.name, rng),
+        html: cfg.html,
+        init: cfg.init
+    };
+    gameCache.set(num, g);
+    return g;
+}
+
+/* ============================================================
+   UI
+   ============================================================ */
+const gameEl = document.getElementById('game');
+const headEl = document.getElementById('gameHead');
+const contentEl = document.getElementById('gameContent');
+const statsEl = document.getElementById('stats');
+
+let currentNum = 0;
+let cleanup = null;
+let toastTimer = null;
+
+function toast(text) {
+    const t = document.getElementById('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function updateStats() {
+    statsEl.textContent = 'Пройдено: ' + store.won.size + ' из 1000 · В избранном: ' + store.fav.size;
+}
+
+function updateModalButton(num) {
+    const b = document.querySelector('#modalGrid [data-n="' + num + '"]');
+    if (b) b.classList.add('won');
+}
+
+function setGame(num) {
+    num = Math.min(1000, Math.max(1, num | 0));
+    if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
+
+    currentNum = num;
+    document.getElementById('num').value = num;
+
+    let g;
+    try {
+        g = buildGame(num);
+    } catch (e) {
+        console.error(e);
+        headEl.innerHTML = '<h2>Ошибка</h2>';
+        contentEl.innerHTML = '<p class="lose">Не удалось загрузить игру №' + num + '</p>';
+        return;
+    }
+
+    const won = store.won.has(num);
+    const fav = store.fav.has(num);
+
+    headEl.innerHTML =
+        '<div>' +
+            '<h2>№' + num + ' · ' + escapeHtml(g.title) + '</h2>' +
+            '<div class="badges">' +
+                '<span class="badge">' + escapeHtml(g.mechanic) + '</span>' +
+                (won ? '<span class="badge won">✅ пройдено</span>' : '') +
+            '</div>' +
+        '</div>' +
+        '<div class="headbtns">' +
+            '<button class="iconbtn" data-h="fav" title="В избранное">' + (fav ? '★' : '☆') + '</button>' +
+            '<button class="iconbtn" data-h="again" title="Заново">↻</button>' +
+            '<button class="iconbtn" data-h="rand" title="Случайная">🎲</button>' +
+        '</div>';
+
+    headEl.querySelector('[data-h=fav]').onclick = () => {
+        if (store.fav.has(num)) store.fav.delete(num); else store.fav.add(num);
+        store.save();
+        const btn = document.querySelector('#modalGrid [data-n="' + num + '"]');
+        if (btn) btn.classList.toggle('fav', store.fav.has(num));
+        setGame(num);
+    };
+    headEl.querySelector('[data-h=again]').onclick = () => setGame(num);
+    headEl.querySelector('[data-h=rand]').onclick = randomGame;
+
+    contentEl.innerHTML = '<div class="mg">' + g.html + '</div>';
+    const root = contentEl.firstElementChild;
+
+    const api = {
+        num,
+        win() {
+            const first = !store.won.has(num);
+            store.won.add(num);
+            store.save();
+            updateStats();
+            updateModalButton(num);
+            const badges = headEl.querySelector('.badges');
+            if (badges && !badges.querySelector('.badge.won')) {
+                const s = document.createElement('span');
+                s.className = 'badge won';
+                s.textContent = '✅ пройдено';
+                badges.appendChild(s);
+            }
+            toast(first ? '✅ Игра №' + num + ' пройдена!' : '✅ Победа в игре №' + num);
+        }
+    };
+
+    try {
+        cleanup = g.init(root, api) || null;
+    } catch (e) {
+        console.error(e);
+        root.innerHTML = '<p class="lose">Внутренняя ошибка игры.</p>';
+    }
+
+    gameEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---- Кнопки меню ---- */
+document.getElementById('playBtn').onclick = () => {
+    const v = parseInt(document.getElementById('num').value, 10);
+    if (isNaN(v) || v < 1 || v > 1000) { toast('Введите число от 1 до 1000'); return; }
+    setGame(v);
+};
+document.getElementById('num').onkeydown = e => {
+    if (e.key === 'Enter') document.getElementById('playBtn').click();
+};
+function randomGame() {
+    setGame(1 + Math.floor(Math.random() * 1000));
+}
+function randomUnwon() {
+    const pool = [];
+    for (let i = 1; i <= 1000; i++) if (!store.won.has(i)) pool.push(i);
+    if (!pool.length) { toast('🏆 Все 1000 игр пройдены!'); return; }
+    setGame(pool[Math.floor(Math.random() * pool.length)]);
+}
+document.getElementById('randBtn').onclick = randomGame;
+document.getElementById('randUnwonBtn').onclick = randomUnwon;
+
+/* ---- Модальное окно ---- */
+const modal = document.getElementById('modal');
+const modalGrid = document.getElementById('modalGrid');
+
+function buildModal() {
+    const frag = document.createDocumentFragment();
+    for (let i = 1; i <= 1000; i++) {
+        const b = el('button', '', String(i));
+        b.dataset.n = i;
+        b.title = META[i].mech;
+        if (store.won.has(i)) b.classList.add('won');
+        if (store.fav.has(i)) b.classList.add('fav');
+        b.onclick = () => { closeModal(); setGame(i); };
+        frag.appendChild(b);
+    }
+    modalGrid.appendChild(frag);
+}
+function openModal() { modal.classList.add('show'); }
+function closeModal() { modal.classList.remove('show'); }
+document.getElementById('listBtn').onclick = openModal;
+document.getElementById('closeModal').onclick = closeModal;
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+document.getElementById('search').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    for (const b of modalGrid.children) {
+        const n = b.dataset.n;
+        const match = !q || n.includes(q) || META[n].mech.toLowerCase().includes(q);
+        b.style.display = match ? '' : 'none';
+    }
+});
+
+/* ============================================================
+   СТАРТ
+   ============================================================ */
+store.load();
+buildMeta();
+buildModal();
+updateStats();
+setGame(1);
+</script>
+</body>
+</html>
