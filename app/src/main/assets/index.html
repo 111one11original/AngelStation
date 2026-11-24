@@ -8,7 +8,7 @@
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: #0b0b0b; color: white; font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
 
-        /* --- ЗАСТАВКА --- */
+        /* ЗАСТАВКА */
         #cinematic-intro { position: fixed; inset: 0; z-index: 1000; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; transition: opacity 1s ease, visibility 1s; }
         #cinematic-intro.hidden { opacity: 0; visibility: hidden; }
         .intro-bg-glow { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,107,53,0.1) 0%, transparent 70%); opacity: 0; animation: fadeInGlow 3s forwards; }
@@ -23,13 +23,12 @@
         .intro-flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 20; pointer-events: none; animation: flashEffect 0.5s 5.5s forwards; }
         @keyframes flashEffect { 0% { opacity: 0; } 50% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        /* --- ИНТЕРФЕЙС --- */
+        /* ИНТЕРФЕЙС */
         .topbar { height: 40px; background: #000; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; font-size: 14px; color: #aaa; flex-shrink: 0; }
         .screen { flex: 1; display: none; flex-direction: column; animation: slideIn 0.3s ease; overflow-y: auto; }
         .screen.active { display: flex; }
         @keyframes slideIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        /* МЕНЮ */
         .menu-grid { flex: 1; display: flex; justify-content: center; align-items: center; gap: 20px; }
         .tile { width: 180px; height: 220px; background: #1a1a1a; border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid transparent; opacity: 0.6; transition: all 0.3s; cursor: pointer; text-decoration: none; color: white; }
         .tile:active { opacity: 1; transform: scale(1.05); }
@@ -37,13 +36,11 @@
         .icon { font-size: 60px; margin-bottom: 15px; }
         .label { font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
-        /* БИБЛИОТЕКА ИГР */
-        .sub-header { padding: 20px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+        .sub-header { padding: 20px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
         .back-btn { background: #333; border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 16px; }
-        .back-btn:active { background: #555; }
+        .exit-btn { background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
         .content-list { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
 
-        /* Карточки игр */
         .game-card { display: flex; background: #1a1a1a; border-radius: 15px; overflow: hidden; text-decoration: none; color: white; border: 2px solid transparent; transition: 0.2s; }
         .game-card:active { border-color: #FF6B35; transform: scale(0.98); }
         .game-cover { width: 100px; height: 100px; object-fit: cover; background: #333; }
@@ -51,7 +48,6 @@
         .game-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .game-desc { font-size: 12px; color: #888; }
 
-        /* НАСТРОЙКИ */
         .setting-group { background: #111; border-radius: 15px; padding: 5px 15px; margin-bottom: 10px; }
         .setting-row { padding: 15px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; cursor: pointer; }
         .setting-row:last-child { border-bottom: none; }
@@ -60,8 +56,8 @@
 </head>
 <body>
 
-    <!-- ЗАСТАВКА -->
-    <div id="cinematic-intro">
+    <!-- ЗАСТАВКА (с проверкой) -->
+    <div id="cinematic-intro" style="display: none;">
         <div class="intro-bg-glow"></div>
         <div class="intro-logo-container">
             <div class="intro-logo-text">ANGEL</div>
@@ -79,10 +75,11 @@
     <!-- МЕНЮ -->
     <div id="screen-main" class="screen active">
         <div class="menu-grid">
-            <div class="tile active" onclick="loadGames()">
+            <div class="tile active" onclick="showScreen('screen-games')">
                 <div class="icon">🎮</div><div class="label">Игры</div>
             </div>
-            <a href="https://yandex.ru" class="tile">
+            <!-- ИСПРАВЛЕНА ССЫЛКА НА БРАУЗЕР -->
+            <a href="browser.html" class="tile">
                 <div class="icon">🌐</div><div class="label">Браузер</div>
             </a>
             <div class="tile" onclick="showScreen('screen-settings')">
@@ -96,9 +93,23 @@
         <div class="sub-header">
             <button class="back-btn" onclick="showScreen('screen-main')">← Назад</button>
             <span>Мои Игры</span>
+            <button class="exit-btn" onclick="showScreen('screen-main')">Выход</button>
         </div>
-        <div class="content-list" id="game-list">
-            <!-- Сюда JS автоматически вставит игры из games.json -->
+        <div class="content-list">
+            <a href="legend_of_gerbil/index.html" class="game-card">
+                <img src="legend_of_gerbil/icon.png" class="game-cover" alt="Иконка" onerror="this.style.display='none'">
+                <div class="game-info">
+                    <div class="game-title">Легенды Песчанок</div>
+                    <div class="game-desc">Эпическое приключение в мире песка</div>
+                </div>
+            </a>
+            <a href="1000_in_1/index.html" class="game-card">
+                <img src="1000_in_1/icon.png" class="game-cover" alt="Иконка" onerror="this.style.display='none'">
+                <div class="game-info">
+                    <div class="game-title">1000 в 1</div>
+                    <div class="game-desc">Сборник классических игр</div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -107,6 +118,7 @@
         <div class="sub-header">
             <button class="back-btn" onclick="showScreen('screen-main')">← Назад</button>
             <span>Настройки</span>
+            <button class="exit-btn" onclick="showScreen('screen-main')">Выход</button>
         </div>
         <div class="content-list">
             <div class="setting-group">
@@ -119,54 +131,28 @@
     </div>
 
     <script>
-        // 1. Функция переключения экранов
+        // Функция переключения экранов
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
         }
 
-        // 2. Загрузка игр из файла games.json
-        function loadGames() {
-            showScreen('screen-games');
-            const listContainer = document.getElementById('game-list');
-            listContainer.innerHTML = '<div style="text-align:center; color:#666;">Загрузка...</div>';
-
-            fetch('games.json')
-                .then(response => response.json())
-                .then(games => {
-                    listContainer.innerHTML = ''; // Очищаем
-                    
-                    if (games.length === 0) {
-                        listContainer.innerHTML = '<div style="text-align:center; color:#666;">Игр пока нет</div>';
-                        return;
-                    }
-
-                    // Генерируем карточки
-                    games.forEach(game => {
-                        const card = document.createElement('a');
-                        card.href = game.folder + '/index.html'; // Ссылка на игру
-                        card.className = 'game-card';
-                        
-                        card.innerHTML = `
-                            <img src="${game.folder}/icon.png" class="game-cover" alt="Иконка" onerror="this.style.display='none'">
-                            <div class="game-info">
-                                <div class="game-title">${game.title}</div>
-                                <div class="game-desc">${game.desc}</div>
-                            </div>
-                        `;
-                        listContainer.appendChild(card);
-                    });
-                })
-                .catch(error => {
-                    console.error('Ошибка загрузки игр:', error);
-                    listContainer.innerHTML = '<div style="text-align:center; color:red;">Ошибка загрузки games.json</div>';
-                });
+        // ЛОГИКА ЗАСТАВКИ: Показываем только если это первый запуск
+        const isFirstRun = localStorage.getItem('angel_booted') === null;
+        
+        if (isFirstRun) {
+            // Показываем заставку
+            document.getElementById('cinematic-intro').style.display = 'flex';
+            localStorage.setItem('angel_booted', 'true'); // Запоминаем, что показали
+            
+            // Скрываем её через 6 секунд
+            setTimeout(() => {
+                document.getElementById('cinematic-intro').classList.add('hidden');
+                setTimeout(() => {
+                    document.getElementById('cinematic-intro').style.display = 'none';
+                }, 1000); // Ждем окончания анимации исчезновения
+            }, 6000);
         }
-
-        // Заставка
-        setTimeout(() => {
-            document.getElementById('cinematic-intro').classList.add('hidden');
-        }, 6000);
 
         // Часы
         setInterval(() => {
@@ -176,4 +162,4 @@
         }, 1000);
     </script>
 </body>
-</html>s
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Браузер</title>
+    <style>
+        body { margin: 0; padding: 0; background: #0b0b0b; height: 100vh; display: flex; flex-direction: column; font-family: sans-serif; }
+        .topbar { height: 50px; background: #1a1a1a; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid #333; gap: 10px; }
+        .back-btn { background: #FF6B35; color: white; text-decoration: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; }
+        .url-bar { flex: 1; background: #333; border: none; color: white; padding: 10px; border-radius: 8px; font-size: 14px; outline: none; }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; background: white; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="index.html" class="back-btn">← Назад</a>
+        <input type="text" class="url-bar" value="https://yandex.ru" readonly>
+    </div>
+    <iframe src="https://yandex.ru"></iframe>
+</body>
+</html>
